@@ -86,6 +86,7 @@ export default {
     align-items: center;
     width: 100%;
     margin: 0px 12px;
+    max-width: 350px;
 
     &-title {
       font-weight: 500;

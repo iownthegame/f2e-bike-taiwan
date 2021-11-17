@@ -1,12 +1,17 @@
 <template>
   <div class="header">
-    <div class="header-logo">
-      <img src="../assets/logo.svg">
-    </div>
+    <div
+      class="header-brand"
+      @click="() => setMenuItem('routes')"
+    >
+      <div class="header-logo">
+        <img src="../assets/logo.png">
+      </div>
 
-    <div class="header-title">
-      <div>台灣<span>自行車</span>旅遊網</div>
-      Taiwan Bike
+      <div class="header-title">
+        <div>台灣<span>自行車</span>旅遊網</div>
+        Taiwan Bike
+      </div>
     </div>
 
     <div class="header-menu">
@@ -17,10 +22,11 @@
 
 <script>
 import { mapMutations } from 'vuex'
+
 export default {
   name: 'Header',
   methods: {
-    ...mapMutations(['setMenuVisible']),
+    ...mapMutations(['setMenuVisible', 'setMenuItem']),
     openMenu() {
       this.setMenuVisible(true)
     }
@@ -35,6 +41,12 @@ export default {
   align-items: center;
   padding: 16px 12px;
   box-shadow: 0px 4px 5px 1px rgba(0, 0, 0, 0.1);
+
+  &-brand {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+  }
 
   &-logo {
   }
