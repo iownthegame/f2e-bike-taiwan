@@ -2,32 +2,48 @@
   <div class="content-search-wrapper">
     <div class="content-search">
       <div class="content-search-title">
-        請選擇欲搜尋縣市和地區
+        請選擇欲搜尋縣市<!--和地區-->
       </div>
 
       <div class="content-search-input">
         <div>縣市</div>
 
         <select
-            name="city"
+          v-model="selectedCity"
+          name="city"
+        >
+          <option value="">
+            選擇縣市
+          </option>
+          <option
+            v-for="option in cities"
+            :key="option.City"
+            :value="option.City"
           >
-            <option value="">
-              選擇縣市
-            </option>
-          </select>
+            {{ option.CityName }}
+          </option>
+        </select>
       </div>
 
-      <div class="content-search-input">
+      <!--div class="content-search-input">
         <div>鄉鎮市區</div>
 
         <select
-            name="region"
+            v-model="selectedTown"
+            name="town"
           >
             <option value="">
               選擇鄉鎮市區
             </option>
+            <option
+              v-for="option in towns"
+              :key="option.TownCode"
+              :value="option.TownCode"
+            >
+              {{ option.TownName }}
+            </option>
           </select>
-      </div>
+      </div-->
 
       <button
         @click="search"
@@ -43,15 +59,30 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex'
+import { mapActions, mapState, mapMutations } from 'vuex'
 
 export default {
   name: 'Search',
+  computed: {
+    ...mapState(['cities', 'towns', 'selectedCity', 'selectedTown']),
+    selectedCity: {
+      get () {
+        return this.$store.state.selectedCity
+      },
+      set (value) {
+        this.setSelectedCity(value)
+      }
+    },
+  },
   methods: {
-    ...mapActions(['searchRoute']),
+    ...mapActions(['searchRoute', 'getCities', 'getCityTowns']),
+    ...mapMutations(['setSelectedCity']),
     search() {
       this.searchRoute()
     }
+  },
+  created() {
+    this.getCities()
   }
 }
 </script>
@@ -106,6 +137,7 @@ export default {
       }
 
       select {
+        cursor: pointer;
         width: 100%;
         border: 1px solid #949494;
         box-sizing: border-box;
@@ -116,6 +148,13 @@ export default {
         font-size: 16px;
         line-height: 24px;
         letter-spacing: 0.015em;
+
+        &:active, &:focus {
+          border: none;
+          outline: 0;
+          border: 1px solid #06B1A7;
+          box-shadow: 0px 0px 0px 3px rgba(16, 189, 165, 0.3);
+        }
       }
     }
 

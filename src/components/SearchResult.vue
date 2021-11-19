@@ -1,5 +1,5 @@
 <template>
-  <div class="content-search-result-wrapper">
+  <div :class="searchResultClass">
     <div class="content-search-result">
       <div class="content-search-result-title">
         搜尋結果
@@ -9,15 +9,20 @@
       <div class="content-search-result-input-group">
         <div class="content-search-result-input">
           <select
-              name="city"
+            v-model="selectedCity"
+            name="city"
+          >
+            <option
+              v-for="option in cities"
+              :key="option.City"
+              :value="option.City"
             >
-              <option value="">
-                縣市
-              </option>
-            </select>
+              {{ option.CityName }}
+            </option>
+          </select>
         </div>
 
-        <div class="content-search-result-input">
+        <!--div class="content-search-result-input">
           <select
               name="region"
             >
@@ -25,7 +30,7 @@
                 鄉鎮市區
               </option>
             </select>
-        </div>
+        </div-->
       </div>
 
       <div class="card-list">
@@ -33,7 +38,7 @@
           v-for="(result, idx) in searchResults"
           :info="result"
           :key="idx"
-          @click="() => setRouteInfo(result)"
+          @click="() => onRouteClick(result)"
         />
       </div>
     </div>
@@ -54,10 +59,10 @@
       <div v-if="youBikeVisible">
         <!-- <BikeButton type="default" /> -->
         <BikeButton
-          type="selected"
-          @click="() => setBikeInfo(fakeBikeInfo)"
-          v-for="i in Array(10)"
-          :key="i"
+          v-for="bikeStation in bikeStations"
+          :key="bikeStation.StationID"
+          :type="bikeInfo && bikeInfo.StationID === bikeStation.StationID ? 'selected' : 'default'"
+          @click="() => onBikeStationClick(bikeStation)"
         />
 
         <!-- <BikeButton type="no_service" /> -->
@@ -136,20 +141,20 @@ export default {
       youBikeVisible: false,
       gettingLocation: false,
       location: null,
-      fakeBikeInfo: { // for test
-        StationName: '淡水海關碼頭園區',
-        City: '新北市',
-        StationAddress: '中正路261號(旁)(鄰近淡水紅毛城/淡水英國領事館/淡水海關碼頭...',
-        ServiceStatus: 1,
-        ServiceType: 1,
-        AvailableRentBikes: 5,
-        AvailableReturnBikes: 15,
-        UpdateTime: '2021-11-11 22:00:00'
-      }
+      busyScrolling: false,
     }
   },
   computed: {
-    ...mapState(['searchResults', 'routeInfo', 'bikeInfo']),
+    ...mapState(['searchResults', 'routeInfo', 'bikeInfo', 'selectedCity', 'cities', 'bikeStations']),
+    selectedCity: {
+      get () {
+        return this.$store.state.selectedCity
+      },
+      set (value) {
+        this.setSelectedCity(value)
+        this.searchRoute()
+      }
+    },
     searchResultCount() {
       return this.searchResults.length
     },
@@ -158,14 +163,20 @@ export default {
         'content-route-info-stops': true,
         'content-route-info-stops-on': this.youBikeVisible
       }
+    },
+    searchResultClass() {
+      return {
+        'content-search-result-wrapper': true,
+        'content-search-result-wrapper-bg': !!this.routeInfo,
+      }
     }
   },
+  mounted() {
+    this.getNextPageResult()
+  },
   methods: {
-    ...mapActions(['searchRoute']),
-    ...mapMutations(['setRouteInfo', 'setBikeInfo']),
-    search() {
-      this.searchRoute()
-    },
+    ...mapActions(['searchRoute', 'getBikeStationNearBy', 'searchMoreRoute']),
+    ...mapMutations(['setRouteInfo', 'setBikeInfo', 'setSelectedCity']),
     toggleEye() {
       this.youBikeVisible = !this.youBikeVisible;
     },
@@ -199,7 +210,29 @@ export default {
         this.setBikeInfo(null)
       } else {
         this.setRouteInfo(null)
+        this.youBikeVisible = false
       }
+    },
+    onRouteClick(result) {
+      this.setRouteInfo(result)
+      this.getBikeStationNearBy()
+    },
+    onBikeStationClick(bikeStation) {
+      this.setBikeInfo({ ...bikeStation, City: this.routeInfo.City })
+    },
+    getNextPageResult() {
+      window.onscroll = () => {
+        const bottomOfWindow = document.documentElement.scrollTop + window.innerHeight + 1 >= document.documentElement.offsetHeight;
+
+        if (bottomOfWindow && !this.busyScrolling) {
+          this.busyScrolling = true
+
+          setTimeout(() => {
+            this.searchMoreRoute()
+            this.busyScrolling = false
+          }, 200)
+        }
+      };
     }
   }
 }
@@ -211,6 +244,11 @@ export default {
   &-search-result-wrapper {
     background: #F5F7F9;
     min-height: calc(100vh - 80px);
+
+    &-bg {
+      height: calc(100vh - 80px);
+      overflow: hidden;
+    }
   }
 
   &-search-result {
@@ -243,6 +281,7 @@ export default {
       margin-right: 8px;
 
       select {
+        cursor: pointer;
         border: 1px solid #007F77;
         box-sizing: border-box;
         border-radius: 4px;
@@ -253,6 +292,13 @@ export default {
         font-size: 16px;
         line-height: 24px;
         letter-spacing: 0.01em;
+
+        &:active, &:focus {
+          border: none;
+          outline: 0;
+          border: 1px solid #06B1A7;
+          box-shadow: 0px 0px 0px 3px rgba(16, 189, 165, 0.3);
+        }
       }
     }
   }

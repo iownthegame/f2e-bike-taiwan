@@ -2,8 +2,8 @@
   <div :class="cardClass">
     <template v-if="type === 'route'">
       <div class="card-item-heading">
-        <div class="card-item-title">{{ info.name }}</div>
-        <div class="card-item-label">{{ info.direction === 2 ? '雙向' : '單向' }}</div>
+        <div class="card-item-title">{{ info.RouteName }}</div>
+        <div class="card-item-label">{{ info.Direction || '單向' }}</div>
       </div>
 
       <hr class="card-item-divider" />
@@ -14,20 +14,20 @@
             <div class="card-item-directions-icon">
               <StopButton type="from" />
             </div>
-            <span class="card-item-directions-place">{{ info.start }}</span>
+            <span class="card-item-directions-place">{{ info.RoadSectionStart }}</span>
           </div>
 
           <div>
             <div class="card-item-directions-icon">
               <StopButton type="to" />
             </div>
-            <div class="card-item-directions-place">{{ info.end }}</div>
+            <div class="card-item-directions-place">{{ info.RoadSectionEnd }}</div>
           </div>
         </div>
 
         <div class="card-item-distance">
           <div class="card-item-distance-label">全長</div>
-          <div class="card-item-distance-unit">{{ info.distance }} 公里</div>
+          <div class="card-item-distance-unit">{{ info.CyclingLength / 1000 }} 公里</div>
         </div>
       </div>
     </template>
@@ -35,20 +35,20 @@
     <template v-if="type === 'bike'">
       <div class="card-item-dragger"></div>
       <div class="card-item-heading card-item-heading-bike">
-        <div class="card-item-title">{{ info.StationName }}</div>
+        <div class="card-item-title">{{ info.StationName.Zh_tw }}</div>
         <div class="card-item-subtitle">
           <img src="../assets/MapPin.png">
           <span>{{ info.City }}</span>
-          <span>{{ info.StationAddress }}</span>
+          <span>{{ info.StationAddress.Zh_tw }}</span>
         </div>
       </div>
 
       <hr class="card-item-divider" />
 
       <div class="card-item-labels">
-        <div :class="`card-item-label card-item-label-${stationStatuses[info.ServiceStatus].tag}`">
+        <div :class="`card-item-label card-item-label-${stationStatuses[info.availability.ServiceStatus].tag}`">
           <div class="card-item-label-dot"></div>
-          {{ stationStatuses[info.ServiceStatus].text }}
+          {{ stationStatuses[info.availability.ServiceStatus].text }}
         </div>
         <div class="card-item-label">{{ bikeTypes[info.ServiceType] }}</div>
       </div>
@@ -56,15 +56,15 @@
       <div class="card-item-panel">
         <div class="card-item-panel-item">
           <div class="card-item-panel-label">可租</div>
-          <div class="card-item-panel-value">{{ info.AvailableRentBikes }}</div>
+          <div class="card-item-panel-value">{{ info.availability.AvailableRentBikes || 'TBA' }}</div>
         </div>
         <div class="card-item-panel-item">
           <div class="card-item-panel-label">可還</div>
-          <div class="card-item-panel-value">{{ info.AvailableReturnBikes }}</div>
+          <div class="card-item-panel-value">{{ info.availability.AvailableReturnBikes || 'TBA' }}</div>
         </div>
       </div>
 
-      <div class="card-item-time">Last update: {{ info.UpdateTime }}</div>
+      <div class="card-item-time">Last update: {{ info.availability.UpdateTime }}</div>
 
       <hr class="card-item-divider" />
 
@@ -115,6 +115,10 @@ export default {
   data() {
     return {
       stationStatuses: {
+        undefined: {
+          text: 'undefined',
+          tag: 'undefined'
+        },
         0: {
           text: '停止營運',
           tag: 'alert'
@@ -129,8 +133,8 @@ export default {
         }
       },
       bikeTypes: {
-        0: 'Youbike 1.0',
-        1: 'Youbike 2.0'
+        1: 'Youbike 1.0',
+        2: 'Youbike 2.0'
       }
     }
   },
@@ -396,6 +400,7 @@ export default {
     }
 
     &-dragger {
+      cursor: ns-resize;
       background: #E7E7E7;
       border-radius: 5px;
       width: 32px;
